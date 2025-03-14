@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  order-db-local:
+    image: postgres:latest
+    container_name: order_db_local
+    environment:
+      POSTGRES_USER: order
+      POSTGRES_PASSWORD: order123
+      POSTGRES_DB: order
+    ports:
+      - '5433:5432'
+    volumes:
+      - order_db_data_local:/var/lib/postgresql/data
+      - ./docker/database/schema:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U order']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network_local
+    restart: always
+
+  order-cache:
+    image: redis:latest
+    container_name: order_cache_local
+    ports:
+      - '6379:6379'
+    command: redis-server
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - app_network_local
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus_local
+    ports:
+      - '9090:9090'
+    volumes:
+      - .docker/prometheus/prometheus-local.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app_network_local
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_local
+    ports:
+      - '3000:3000'
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./docker/grafana/grafana.ini:/etc/grafana/grafana.ini
+    depends_on:
+      prometheus:
+        condition: service_started
+    networks:
+      - app_network_local
+    restart: always
+
+volumes:
+  order_db_data_local:
+  redis_data:
+  grafana_data:
+
+networks:
+  app_network_local:
+    driver: bridge

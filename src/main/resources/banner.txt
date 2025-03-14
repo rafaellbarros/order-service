@@ -1,0 +1,10 @@
+                 .___                                               .__
+  ___________  __| _/___________            ______ ______________  _|__| ____  ____
+ /  _ \_  __ \/ __ |/ __ \_  __ \  ______  /  ___// __ \_  __ \  \/ /  |/ ___\/ __ \
+(  <_> )  | \/ /_/ \  ___/|  | \/ /_____/  \___ \\  ___/|  | \/\   /|  \  \__\  ___/
+ \____/|__|  \____ |\___  >__|            /____  >\___  >__|    \_/ |__|\___  >___  >
+                  \/    \/                     \/     \/                    \/    \/
+Welcome to the Order Service Application!
+Application Name: ${application.title}
+Application Version: ${application.version}
+Powered by Spring Boot ${spring-boot.version}

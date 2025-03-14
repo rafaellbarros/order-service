@@ -1,0 +1,101 @@
+services:
+  order-db:
+    image: postgres:latest
+    container_name: order_db
+    env_file:
+      - ${ENV_FILE}
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - '${DB_PORT}:5432'
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+      - ./docker/database/schema:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d ${DB_NAME}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - app_network
+    restart: always
+
+  order-cache:
+    image: redis:latest
+    container_name: order_cache
+    env_file:
+      - ${ENV_FILE}
+    ports:
+      - '${REDIS_PORT}:6379'
+    command: redis-server
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app_network
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    env_file:
+      - ${ENV_FILE}
+    ports:
+      - '${PROMETHEUS_PORT}:9090'
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    env_file:
+      - ${ENV_FILE}
+    ports:
+      - '${GRAFANA_PORT}:3000'
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./docker/grafana/grafana.ini:/etc/grafana/grafana.ini
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: always
+    command: /bin/sh -c "sleep 15 && /bin/bash -c '/bin/grafana-server web'"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  order_db_data:
+  redis_data:
+  grafana_data:
+
+networks:
+  app_network:
+    driver: bridge

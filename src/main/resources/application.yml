@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: order-service
+  profiles:
+    default: local
+
+server:
+  port: ${APP_PORT}
+  servlet:
+    context-path: /order-service
+
+
+# banner
+application:
+  title: ${spring.application.name}
+  version: @project.version@
+
+
+
