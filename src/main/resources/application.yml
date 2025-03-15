@@ -15,5 +15,9 @@ application:
   title: ${spring.application.name}
   version: @project.version@
 
+  output:
+    ansi:
+      enabled: ALWAYS
+
 
 
