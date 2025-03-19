@@ -43,7 +43,7 @@ services:
       - '${DB_PORT}:5432'
     volumes:
       - order_db_data:/var/lib/postgresql/data
-      - ./docker/database/schema:/docker-entrypoint-initdb.d
+      - ./docker/database/schema-prod:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 15s

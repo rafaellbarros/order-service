@@ -1,7 +1,7 @@
 # Definição dos arquivos do Docker Compose
-COMPOSE_LOCAL = -f docker-compose.local.yml
-COMPOSE_STG = -f docker-compose.stg.yml
-COMPOSE_PROD = -f docker-compose.prod.yml
+COMPOSE_LOCAL = --env-file=.env.local -f docker-compose.local.yml
+COMPOSE_STG = --env-file=.env.stg -f docker-compose.stg.yml
+COMPOSE_PROD = --env-file=.env.prod -f docker-compose.prod.yml
 
 # Função para verificar pré-requisitos antes de rodar os comandos
 check_requirements:
