@@ -13,3 +13,4 @@ scrape_configs:
     metrics_path: '/order-service/actuator/prometheus'
     static_configs:
       - targets: ['order-api-stg:8080']
+

@@ -1,7 +1,7 @@
 services:
   order-api-prod:
     container_name: order_api
-    image: rafaelbarros/order-api:1.0.stg
+    image: rafaelbarros/order-api:1.0.prod
     ports:
       - ${APP_PORT}:8080
     environment:
@@ -21,6 +21,13 @@ services:
         condition: service_healthy
     networks:
       - app_network
+    restart: always
+    entrypoint: ["/usr/bin/java", "-jar", "/app/app.jar"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://${APP_HOST}:${APP_PORT}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 
   order-db:
@@ -81,7 +88,7 @@ services:
       - app_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
+      test: ["CMD", "wget", "--spider", "-q", "http://${PROMETHEUS_HOST}:${PROMETHEUS_PORT}/-/ready"]
       interval: 15s
       timeout: 10s
       retries: 5
