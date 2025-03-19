@@ -21,7 +21,7 @@ FROM gcr.io/distroless/java21:latest AS runtime
 WORKDIR /app
 
 # Copiar JAR gerado
-COPY --from=build /app/build/libs/*.jar /app/app.jar
+COPY --from=build /app/build/libs/order-api.jar /app/app.jar
 
 EXPOSE 8080
 # Iniciar a aplicação corretamente

@@ -66,6 +66,11 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+bootJar {
+	archiveBaseName.set('order-api')
+	archiveVersion.set('')
+}
+
 
 
 
