@@ -1,4 +1,4 @@
-# Etapa de construção (Build Stage)
+# Etapa de Construção
 FROM gradle:8.4.0-jdk21 AS build
 WORKDIR /app
 
@@ -14,22 +14,15 @@ RUN ./gradlew dependencies --no-daemon
 COPY --chown=gradle:gradle src ./src
 
 # Build otimizado
-# Use um argumento para receber o caminho do arquivo .env
-ARG ENV_FILE=.env.prod
+RUN ./gradlew clean build -Pstg --no-daemon
 
-# Copie o .env.prod para dentro do container
-COPY ${ENV_FILE} /app/.env
-
-# Exporta as variáveis do .env e executa o build do Gradle
-RUN export $(grep -v '^#' /app/.env | xargs) && ./gradlew clean build -Pprod --no-daemon
-
-# Etapa de execução (Runtime Stage)
-FROM openjdk:21-jdk-slim AS runtime
+# Etapa Final (Imagem Leve)
+FROM gcr.io/distroless/java21:latest AS runtime
 WORKDIR /app
 
-# Copiar o JAR gerado
-COPY --from=build /app/build/libs/order-service-1.0.jar app.jar
+# Copiar JAR gerado
+COPY --from=build /app/build/libs/*.jar /app/app.jar
 
-# Expor porta e definir entrada
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Iniciar a aplicação corretamente
+CMD ["/usr/bin/java", "-jar", "/app/app.jar"]

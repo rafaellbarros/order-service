@@ -7,4 +7,5 @@
 Welcome to the Order Service Application!
 Application Name: ${application.title}
 Application Version: ${application.version}
+Application Profile: ${application.profile}
 Powered by Spring Boot ${spring-boot.version}

@@ -4,16 +4,17 @@ spring:
   profiles:
     default: local
 
+
 server:
-  port: ${APP_PORT}
+  port: 8080
   servlet:
     context-path: /order-service
-
 
 # banner
 application:
   title: ${spring.application.name}
   version: @project.version@
+  profile: ${spring.application.profiles.default}
 
   output:
     ansi:

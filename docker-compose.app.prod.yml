@@ -1,12 +1,24 @@
 services:
-  order-service:
+  order-api-prod:
     container_name: order_api
-    image: rafaelbarros/order-api:1.0
+    build:
+      context: .
+      dockerfile: ${DOCKER_FILE}
+      args:
+        ENV_FILE: ${ENV_FILE}
+    env_file:
+      - ${ENV_FILE}
     ports:
       - '${APP_PORT}:8080'
     networks:
       - app_network
     restart: always
+    entrypoint: ["/usr/bin/java", "-jar", "/app/app.jar"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://${APP_HOST}:${APP_PORT}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 networks:
   app_network:

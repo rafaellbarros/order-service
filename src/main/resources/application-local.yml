@@ -46,12 +46,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,metrics,prometheus
   server:
     port: ${APP_PORT:8082}
-  info:
-    env:
-      enabled: true
 
 logging:
   level:

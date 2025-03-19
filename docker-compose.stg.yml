@@ -1,4 +1,32 @@
 services:
+  order-api-stg:
+    container_name: order_api
+    build:
+      context: .
+      dockerfile: ${DOCKER_FILE}
+      args:
+        ENV_FILE: ${ENV_FILE}
+    env_file:
+      - ${ENV_FILE}
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+    ports:
+      - '${APP_PORT}:8080'
+    depends_on:
+      order-db:
+        condition: service_healthy
+      order-cache:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: always
+    entrypoint: ["/usr/bin/java", "-jar", "/app/app.jar"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://${APP_HOST}:${APP_PORT}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   order-db:
     image: postgres:latest
     container_name: order_db
@@ -14,7 +42,7 @@ services:
       - order_db_data:/var/lib/postgresql/data
       - ./docker/database/schema:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -31,14 +59,11 @@ services:
     ports:
       - '${REDIS_PORT}:6379'
     command: redis-server
-    volumes:
-      - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 3
     networks:
       - app_network
     restart: always
@@ -66,7 +91,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     env_file:
-      - ${ENV_FILE}
+      - .env.prod
     ports:
       - '${GRAFANA_PORT}:3000'
     environment:
@@ -79,17 +104,10 @@ services:
       - ./docker/grafana/grafana.ini:/etc/grafana/grafana.ini
     depends_on:
       prometheus:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app_network
     restart: always
-    command: /bin/sh -c "sleep 15 && /bin/bash -c '/bin/grafana-server web'"
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 15s
 
 volumes:
   order_db_data:
