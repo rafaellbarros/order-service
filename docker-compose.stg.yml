@@ -3,7 +3,7 @@ services:
     container_name: order_api
     build:
       context: .
-      dockerfile: ${DOCKER_FILE}
+      dockerfile: Dockerfile
       args:
         ENV_FILE: ${ENV_FILE}
     env_file:
