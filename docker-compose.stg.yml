@@ -99,7 +99,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     env_file:
-      - .env.prod
+      - ${ENV_FILE}
     ports:
       - '${GRAFANA_PORT}:3000'
     environment:

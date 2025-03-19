@@ -42,8 +42,6 @@ management:
       namespace: ${APP_NAMESPACE}
       instance: ${APP_HOST}
   server:
-    port: ${APP_PORT:8082}  
-  server:
     port: ${APP_PORT:8080}
   info:
     env:

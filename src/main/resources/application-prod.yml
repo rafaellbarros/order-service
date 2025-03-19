@@ -38,9 +38,9 @@ management:
         include: health, info, metrics, prometheus
   metrics:
     tags:
-      application: ${APP_NAME}
-      namespace: ${APP_NAMESPACE}
-      instance: ${APP_HOST}
+      application: ${APP_NAME:order-service}
+      namespace: ${APP_NAMESPACE:default-namespace}
+      instance: ${APP_HOST:order-api-prod}
   server:
     port: ${APP_PORT:8080}
   info:
