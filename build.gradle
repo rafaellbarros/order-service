@@ -4,6 +4,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.9'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.sonarqube' version '4.0.0.2929'
 }
 
 group = 'br.com.rafaellbarros'
@@ -15,9 +16,12 @@ java {
 	}
 }
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
+sonarqube {
+	properties {
+		property "sonar.projectKey", "order-api"
+		property "sonar.organization", "rbs-digitalsolutions"
+		property "sonar.host.url", "http://sonar:9000"
+		property "sonar.login", project.findProperty("sonar.login") ?: System.getenv("SONAR_TOKEN")
 	}
 }
 
@@ -26,8 +30,8 @@ repositories {
 }
 
 ext {
-	set('jacksonVersion', "2.17.2")
-	set('mapStructVersion', "1.6.2")
+	jacksonVersion = "2.17.2"
+	mapStructVersion = "1.6.2"
 }
 
 dependencies {
@@ -37,11 +41,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.data:spring-data-redis'
 	implementation 'io.lettuce:lettuce-core:6.5.3.RELEASE'
-	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 	implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
-
-
 	implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
 	implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
 	implementation "org.mapstruct:mapstruct:${mapStructVersion}"
@@ -70,7 +72,3 @@ bootJar {
 	archiveBaseName.set('order-api')
 	archiveVersion.set('')
 }
-
-
-
-
