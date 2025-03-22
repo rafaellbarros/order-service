@@ -1,0 +1,71 @@
+jenkins:
+  systemMessage: "Welcome to Jenkins configured with JCasC!"
+  
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_USER}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: "SONAR_HOST_URL"
+            value: "${SONAR_HOST_URL}"
+          - key: "SONAR_TOKEN"
+            value: "${SONAR_TOKEN}"
+
+tool:
+  git:
+    installations:
+    - home: "git"
+      name: "Git"
+  gradle:
+    installations:
+    - name: "Gradle"
+      properties:
+      - installSource:
+          installers:
+          - gradleInstaller:
+              id: "8.14-milestone-6"
+  jdk:
+    installations:
+    - name: "Java-21-OpenJdk"
+      properties:
+      - installSource:
+          installers:
+          - openJDKInstaller:
+              openjdkPackage: openJDK21
+  maven:
+    installations:
+    - name: "Maven"
+      properties:
+      - installSource:
+          installers:
+          - maven:
+              id: "3.9.9"
+  mavenGlobalConfig:
+    globalSettingsProvider: "standard"
+    settingsProvider: "standard"
+  sonarRunnerInstallation:
+    installations:
+    - name: "SonarQubeScanner"
+      properties:
+      - installSource:
+          installers:
+          - sonarRunnerInstaller:
+              id: "7.1.0.4889"
+
+unclassified:
+  sonarGlobalConfiguration:
+    buildWrapperEnabled: true
+    installations:
+      - name: "SonarQube"
+        serverUrl: "${SONAR_HOST_URL}"
+        credentialsId: "${SONAR_TOKEN}"
+        webhookSecretId: "sonarqube-webhook-secret"

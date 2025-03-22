@@ -1,0 +1,13 @@
+git
+gradle
+pipeline-model-definition
+pipeline-github-lib
+pipeline-stage-view
+workflow-aggregator
+workflow-cps-global-lib
+configuration-as-code
+openJDK-native-plugin
+sonar
+sonar-quality-gates
+cloudbees-credentials
+credentials-binding

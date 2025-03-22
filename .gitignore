@@ -40,6 +40,5 @@ out/
 bkp/
 
 ### Others ###
-docker/jenkins/
-docker/sonar/
+/lib
 

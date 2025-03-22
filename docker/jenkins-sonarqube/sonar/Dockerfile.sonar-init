@@ -1,0 +1,15 @@
+FROM openjdk:8-jdk-slim AS runtime
+
+WORKDIR /usr/local/bin/
+
+# Instale o curl
+RUN apt-get update && apt-get install -y curl
+
+COPY sonar-init.sh /usr/local/bin/sonar-init.sh
+
+# Verifique se o script foi copiado corretamente
+RUN test -f /usr/local/bin/sonar-init.sh && echo "sonar-init.sh encontrado" || echo "sonar-init.sh não encontrado"
+
+RUN chmod +x /usr/local/bin/sonar-init.sh
+
+ENTRYPOINT ["/usr/local/bin/sonar-init.sh"]

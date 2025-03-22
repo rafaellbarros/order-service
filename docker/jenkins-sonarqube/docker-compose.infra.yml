@@ -1,0 +1,105 @@
+
+services:
+  # Banco de Dados PostgreSQL para o SonarQube
+  db-sonar:
+    image: postgres:13
+    container_name: db-sonar
+    env_file:
+      - .env.local
+    environment:
+      - POSTGRES_USER=${SONAR_DB_USER}
+      - POSTGRES_PASSWORD=${SONAR_DB_PASSWORD}
+      - POSTGRES_DB=${SONAR_DB_NAME}
+    volumes:
+      - db_sonar_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${SONAR_DB_USER} -d ${SONAR_DB_NAME}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s   
+    networks:
+      - app_network
+    restart: always
+
+  # SonarQube
+  sonar:
+    image: sonarqube:community
+    container_name: sonar
+    env_file:
+      - .env.local
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://${SONAR_DB_HOST}:${SONAR_DB_PORT}/${SONAR_DB_NAME}
+      - SONARQUBE_JDBC_USERNAME=${SONAR_DB_USER}
+      - SONARQUBE_JDBC_PASSWORD=${SONAR_DB_PASSWORD}
+      - SONAR_ADMIN_PASSWORD=${SONAR_ADMIN_PASSWORD}
+    ports:
+      - "9000:9000"
+    depends_on:
+      db-sonar:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - app_network
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+      - sonar_logs:/opt/sonarqube/logs
+
+  # Jenkins
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    container_name: jenkins
+    user: root
+    privileged: true
+    env_file:
+      - .env.local
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+      - JENKINS_ADMIN_USER=${JENKINS_ADMIN_USER}
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD}
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    depends_on:
+      sonar:
+        condition: service_healthy
+    networks:
+      - app_network
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./jenkins/casc.yaml:/var/jenkins_home/casc_configs/jenkins.yaml
+      - ./jenkins/01_add_git_credentials.groovy:/var/jenkins_home/init.groovy.d/01_add_git_credentials.groovy
+      - ./jenkins/02_setup_credentials.groovy:/var/jenkins_home/init.groovy.d/02_setup_credentials.groovy
+      - ./jenkins/03_create_pipeline.groovy:/var/jenkins_home/init.groovy.d/03_create_pipeline.groovy
+      - ./jenkins/sonar-init.sh:/usr/local/bin/sonar-init.sh
+    entrypoint:
+      - /bin/bash
+      - -c
+      - /usr/local/bin/sonar-init.sh && /usr/bin/tini -- /usr/local/bin/jenkins.sh
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+volumes:
+  jenkins_home:
+  db_sonar_data:
+  sonar_data:
+  sonar_logs:
+  sonar_extensions:
+
+networks:
+  app_network:
+    driver: bridge

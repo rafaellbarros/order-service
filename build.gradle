@@ -5,6 +5,7 @@ plugins {
 	id 'org.springframework.boot' version '3.3.9'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'org.sonarqube' version '4.0.0.2929'
+	id 'jacoco'
 }
 
 group = 'br.com.rafaellbarros'
@@ -21,7 +22,18 @@ sonarqube {
 		property "sonar.projectKey", "order-api"
 		property "sonar.organization", "rbs-digitalsolutions"
 		property "sonar.host.url", "http://sonar:9000"
-		property "sonar.login", project.findProperty("sonar.login") ?: System.getenv("SONAR_TOKEN")
+		property "sonar.token", project.findProperty("sonar.token") ?: System.getenv("SONAR_TOKEN")
+
+		// Diretórios de código fonte e testes
+		property "sonar.sources", "src/main/java"
+		property "sonar.tests", "src/test/java"
+
+		// Cobertura de código (JaCoCo)
+		property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+
+		// Incluir arquivos de teste no Sonar
+		property "sonar.junit.reportPaths", "${project.buildDir}/test-results/test"
+		property "sonar.java.coveragePlugin", "jacoco"
 	}
 }
 
@@ -64,8 +76,22 @@ processResources {
 	}
 }
 
+jacoco {
+	toolVersion = "0.8.11" // Use sempre a versão mais recente do JaCoCo
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy 'jacocoTestReport' // Garante que o relatório seja gerado após os testes
+}
+
+tasks.named('jacocoTestReport') {
+	dependsOn 'test' // Garante que os testes sejam executados antes de gerar o relatório
+	reports {
+		xml.required = true  // Necessário para o SonarQube
+		html.required = false
+		csv.required = false
+	}
 }
 
 bootJar {
